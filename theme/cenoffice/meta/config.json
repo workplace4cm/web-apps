@@ -1,0 +1,19 @@
+{
+  "company_name": "CenOffice",
+  "publisher_name": "CenOffice",
+  "publisher_url": "",
+  "publisher_address": "",
+  "publisher_phone": "",
+  "sales_email": "",
+  "support_email": "",
+  "support_url": "",
+  "help_url": "",
+  "app_title": "CenOffice",
+  "attribution": "CenOffice is based on Euro-Office and ONLYOFFICE by Ascensio System SIA",
+  "mobile_logo_light": "eo_logo_light.svg",
+  "mobile_logo_dark": "eo_logo_dark.svg",
+  "about_logo_light": "logo.svg",
+  "about_logo_dark": "logo.svg",
+  "forms_logo_light": "eo_logo_dark.svg",
+  "forms_logo_dark": "eo_logo_light.svg"
+}

@@ -20,6 +20,7 @@ FROM ubuntu:24.04 AS web-base
 FROM web-base AS web-apps
     ARG PRODUCT_VERSION
     ARG BUILD_ROOT=/package
+    ARG THEME=cenoffice
 
     COPY web-apps/build/package*.json /app/build/
 
@@ -36,5 +37,5 @@ FROM web-base AS web-apps
         python3 merge_and_check.py
 
     RUN cd app/build && \
-        BUILD_ROOT=${BUILD_ROOT} PRODUCT_VERSION=${PRODUCT_VERSION} THEME=euro-office \
+        BUILD_ROOT=${BUILD_ROOT} PRODUCT_VERSION=${PRODUCT_VERSION} THEME=${THEME} \
         node scripts/build-pipeline.js
