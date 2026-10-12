@@ -905,6 +905,14 @@ define([], function () {
 
     Common.Utils.String = _extend_object(utilsString, Common.Utils.String);
 
+    // Links taken from a document that must never be opened: script and data
+    // URLs, local files and network shares (which leak Windows credentials).
+    Common.Utils.isBlockedLinkUrl = function (url) {
+        var u = (url || '').toString().replace(/[\u0000-\u0020\u007f]+/g, '').toLowerCase();
+        return /^(javascript|vbscript|data|file|smb|cifs|nfs|ms-[a-z-]+|search-ms|shell):/.test(u) ||
+               u.indexOf('\\\\') === 0 || u.indexOf('//') === 0;
+    };
+
     Common.Utils.isBrowserSupported = function () {
         return !((Common.Utils.ieVersion != 0 && Common.Utils.ieVersion < 10.0) ||
             (Common.Utils.safariVersion != 0 && Common.Utils.safariVersion < 5.0) ||

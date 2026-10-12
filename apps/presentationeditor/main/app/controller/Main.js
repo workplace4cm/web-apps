@@ -464,7 +464,7 @@ define([
 
                 value = Common.localStorage.getItem("pe-macros-mode");
                 if (value === null) {
-                    value = this.editorConfig.customization ? this.editorConfig.customization.macrosMode : 'warn';
+                    value = (this.editorConfig.customization && this.editorConfig.customization.macrosMode) || 'disable';
                     value = (value == 'enable') ? 1 : (value == 'disable' ? 2 : 0);
                 } else
                     value = parseInt(value);
@@ -2651,9 +2651,11 @@ define([
                             dontshow: true,
                             textDontShow: this.textRemember,
                             callback: function(btn, dontshow){
-                                if (dontshow) {
-                                    Common.Utils.InternalSettings.set("pe-macros-mode", (btn == 'yes') ? 1 : 2);
-                                    Common.localStorage.setItem("pe-macros-mode", (btn == 'yes') ? 1 : 2);
+                                // Remember only a refusal: running a document's macros must stay a
+                                // decision made per document.
+                                if (dontshow && btn != 'yes') {
+                                    Common.Utils.InternalSettings.set("pe-macros-mode", 2);
+                                    Common.localStorage.setItem("pe-macros-mode", 2);
                                 }
                                 if (btn == 'yes') {
                                     setTimeout(function() {
@@ -2667,6 +2669,12 @@ define([
             },
 
             onMacrosPermissionRequest: function(url, callback) {
+                // Macros never get network access in this build: refuse every request
+                // without asking, so there is no prompt to click through.
+                if (url && callback) {
+                    callback(false);
+                    return;
+                }
                 if (url && callback) {
                     this.stackMacrosRequests.push({url: url, callback: callback});
                     if (this.stackMacrosRequests.length>1) {
