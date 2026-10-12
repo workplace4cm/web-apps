@@ -45,7 +45,7 @@ define([], function () {
                 id: 'macros-dialog',
                 title: this.textTitle,
                 header: true,
-                help: true,
+                help: false, // the macros guide is online only
                 width: Math.min(810, innerWidth),
                 height: Math.min(512, innerHeight),
                 minwidth: 750,
@@ -873,7 +873,7 @@ define([], function () {
         },
         
         onHelp: function() {
-            window.open('https://api.onlyoffice.com/docs/plugin-and-macros/macros/getting-started/', '_blank')
+            
         },
         onBtnClick: function(event) {
             this._handleInput(event.currentTarget.attributes['result'].value);

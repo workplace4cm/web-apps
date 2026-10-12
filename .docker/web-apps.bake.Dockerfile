@@ -20,7 +20,7 @@ FROM ubuntu:24.04 AS web-base
 FROM web-base AS web-apps
     ARG PRODUCT_VERSION
     ARG BUILD_ROOT=/package
-    ARG THEME=cenoffice
+    ARG THEME=secure-office-suite
 
     COPY web-apps/build/package*.json /app/build/
 

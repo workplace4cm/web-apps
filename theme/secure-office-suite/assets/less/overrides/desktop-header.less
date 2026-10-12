@@ -1,0 +1,14 @@
+// --------------------------------------------------------------------------
+// Secure Office Suite: no account avatar and no Editing/Reviewing/Viewing
+// (or PDF Comment/Edit) mode dropdown in the editor header.
+// Upstream: apps/common/main/lib/view/Header.js, templates with
+// data-layout-name="header-user" and "header-editMode".
+// --------------------------------------------------------------------------
+
+[data-layout-name="header-user"],
+[data-layout-name="header-editMode"],
+#slot-btn-edit-mode,
+.btn-current-user,
+.slot-btn-user-name {
+  display: none !important;
+}

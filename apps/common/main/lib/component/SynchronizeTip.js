@@ -356,7 +356,7 @@ define([
                     target: targetEl,
                     text: props.text,
                     textHeader: props.header,
-                    showLink: !!props.link,
+                    showLink: !!props.link && !!(props.link.url || props.link.src),
                     textLink: props.link ? props.link.text : '',
                     closable: props.closable !== false, // true by default
                     showButton: props.showButton !== false, // true by default
