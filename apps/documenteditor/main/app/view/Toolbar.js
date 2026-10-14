@@ -2622,7 +2622,7 @@ define([
                     me.btnTextFromFile.menu.items[2].setDisabled(config.disableNetworkFunctionality);
                     me.btnTextFromFile.updateHint(me.tipTextFromFile);
 
-                    if (!config.canFeatureContentControl && me.btnContentControls.cmpEl) {
+                    if (me.btnContentControls.cmpEl) { // Content Controls are not offered on the Insert tab
                         me.btnContentControls.cmpEl.parents('.group').hide().prev('.separator').hide();
                     }
                 });

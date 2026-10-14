@@ -109,6 +109,7 @@
                             url: "https://helpdesk.onlyoffice.com/?desktop=true"
                         }
                         , uiTheme: urlParams["uitheme"]
+                        , macros: false // no macros: hides the View tab macro buttons and the Macro Settings option
                     },
                     mode            : urlParams["mode"] || 'edit',
                     lang            : urlParams["lang"] || 'en',
