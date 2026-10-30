@@ -39,7 +39,9 @@
 
     !window.uitheme && (window.uitheme = {});
 
-    window.uitheme.DEFAULT_LIGHT_THEME_ID = !window.isIEBrowser ? 'theme-white' : 'theme-classic-light';
+    // Secure Office Suite: the light default is the colourful theme, whose title
+    // bar carries the application colour (Office's default look).
+    window.uitheme.DEFAULT_LIGHT_THEME_ID = !window.isIEBrowser ? 'theme-light' : 'theme-classic-light';
     window.uitheme.DEFAULT_DARK_THEME_ID = !window.isIEBrowser ? 'theme-night' : 'theme-dark';
 
     window.uitheme.set_id = function (id) {

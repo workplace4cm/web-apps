@@ -1,0 +1,198 @@
+// --------------------------------------------------------------------------
+// Secure Office Suite: Office-style editor chrome
+//
+// Every editor (Writer = documenteditor, Sheet = spreadsheeteditor,
+// Presentation = presentationeditor, PDF = pdfeditor and PDF forms) reads its
+// identity from the shared design tokens in ../sos/tokens.less:
+//   --sos-app-accent / -dark / -light / -night and --sos-app-name.
+// The rules below only consume those properties, so a new surface gets the
+// same look by setting data-editor-type (or .pdf-form) on <body>.
+//
+// Upstream drives the header, tab underline and File menu colours through CSS
+// custom properties (apps/common/main/resources/less/colors-table*.less);
+// this file overrides properties, not upstream rules, wherever it can.
+// --------------------------------------------------------------------------
+
+:root {
+  .sos-root-tokens();
+}
+
+// --------------------------------------------------------------------------
+// Application identity
+// --------------------------------------------------------------------------
+
+:root body[data-editor-type="document"] {
+  .sos-app-tokens(writer);
+  .sos-app-name(writer);
+}
+
+:root body[data-editor-type="spreadsheet"] {
+  .sos-app-tokens(sheet);
+  .sos-app-name(sheet);
+}
+
+:root body[data-editor-type="presentation"] {
+  .sos-app-tokens(presentation);
+  .sos-app-name(presentation);
+}
+
+// PDF forms run inside the document editor; they belong to EuroOffice PDF.
+:root body[data-editor-type="pdf"],
+:root body[data-editor-type].pdf-form {
+  .sos-app-tokens(pdf);
+  .sos-app-name(pdf);
+}
+
+:root body[data-editor-type="document"].theme-type-dark {
+  .sos-app-tokens-dark(writer);
+}
+
+:root body[data-editor-type="spreadsheet"].theme-type-dark {
+  .sos-app-tokens-dark(sheet);
+}
+
+:root body[data-editor-type="presentation"].theme-type-dark {
+  .sos-app-tokens-dark(presentation);
+}
+
+:root body[data-editor-type="pdf"].theme-type-dark,
+:root body[data-editor-type].pdf-form.theme-type-dark {
+  .sos-app-tokens-dark(pdf);
+}
+
+// --------------------------------------------------------------------------
+// Title bar
+// The Light and Classic Light themes paint the title bar and ribbon tab row
+// in the application colour, like the "Colorful" Office theme. The desktop
+// shell uses the same colours for the editor tab and window frame
+// (desktop-apps/win-linux/res/styles/theme-light.json, brand-*).
+// White, Gray and the dark themes keep their neutral header; the accent strip
+// in header.less carries the identity there.
+// --------------------------------------------------------------------------
+
+:root .theme-light,
+:root .theme-classic-light {
+  --toolbar-header-document: @sos-writer-accent;
+  --toolbar-header-spreadsheet: @sos-sheet-accent;
+  --toolbar-header-presentation: @sos-presentation-accent;
+  --toolbar-header-pdf: @sos-pdf-accent;
+
+  --text-toolbar-header-on-background-document: @sos-writer-accent-dark;
+  --text-toolbar-header-on-background-spreadsheet: @sos-sheet-accent-dark;
+  --text-toolbar-header-on-background-presentation: @sos-presentation-accent-dark;
+  --text-toolbar-header-on-background-pdf: @sos-pdf-accent-dark;
+
+  --highlight-toolbar-tab-underline-document: @sos-writer-accent;
+  --highlight-toolbar-tab-underline-spreadsheet: @sos-sheet-accent;
+  --highlight-toolbar-tab-underline-presentation: @sos-presentation-accent;
+  --highlight-toolbar-tab-underline-pdf: @sos-pdf-accent;
+}
+
+// Neutral light headers: the active ribbon tab is underlined in the
+// application colour, as in Office's White theme.
+:root .theme-white,
+:root .theme-gray {
+  --highlight-header-tab-underline-document: @sos-writer-accent;
+  --highlight-header-tab-underline-spreadsheet: @sos-sheet-accent;
+  --highlight-header-tab-underline-presentation: @sos-presentation-accent;
+  --highlight-header-tab-underline-pdf: @sos-pdf-accent;
+
+  --highlight-toolbar-tab-underline-document: @sos-writer-accent;
+  --highlight-toolbar-tab-underline-spreadsheet: @sos-sheet-accent;
+  --highlight-toolbar-tab-underline-presentation: @sos-presentation-accent;
+  --highlight-toolbar-tab-underline-pdf: @sos-pdf-accent;
+}
+
+// Application name after the document name: "Report.docx  EuroOffice Writer".
+// Upstream: apps/common/main/lib/view/Header.js templateTitleBox.
+#box-document-title #id-box-doc-name::after {
+  content: var(--sos-app-name, "");
+  flex-shrink: 0;
+  padding: 0 @sos-space-2;
+  opacity: .8;
+  white-space: nowrap;
+  .font-size-medium();
+}
+
+// --------------------------------------------------------------------------
+// Ribbon tabs
+// Upstream: apps/common/main/resources/less/toolbar.less (.ribtab).
+// --------------------------------------------------------------------------
+
+.toolbar .ribtab.active > a {
+  font-weight: @sos-font-weight-semibold;
+}
+
+// --------------------------------------------------------------------------
+// File menu as Office Backstage: a rail in the application colour with the
+// commands, the selected page on the right.
+// Upstream: apps/common/main/resources/less/common.less (#file-menu-panel).
+// --------------------------------------------------------------------------
+
+#file-menu-panel .panel-menu {
+  background-color: var(--sos-app-accent);
+  border-right-color: var(--sos-app-accent);
+  border-left-color: var(--sos-app-accent);
+  color: var(--sos-app-on-accent);
+
+  // The menu icons are symbols coloured from these properties.
+  --icon-gray-primary: var(--sos-app-on-accent);
+  --icon-normal: var(--sos-app-on-accent);
+  --icon-normal-pressed: var(--sos-app-on-accent);
+
+  li.fm-btn {
+    border-radius: 0;
+
+    > a,
+    > a:hover,
+    > a:focus {
+      color: var(--sos-app-on-accent);
+    }
+
+    span.menu-item-icon {
+      background-position-x: @button-small-active-icon-offset-x-ie;
+      background-position-x: @button-small-active-icon-offset-x;
+    }
+
+    &:hover:not(.disabled),
+    &.highlight-tip {
+      background-color: fade(#fff, 14%);
+    }
+
+    &.active:not(.disabled) {
+      background-color: var(--sos-app-accent-dark);
+      box-shadow: inset 3px 0 0 var(--sos-app-on-accent);
+
+      .rtl & {
+        box-shadow: inset -3px 0 0 var(--sos-app-on-accent);
+      }
+
+      > a {
+        color: var(--sos-app-on-accent);
+      }
+
+      svg.menu-item-icon {
+        --icon-gray-primary: var(--sos-app-on-accent);
+      }
+    }
+  }
+
+  li.devider {
+    background-color: fade(#fff, 28%);
+  }
+}
+
+// Page titles in the Backstage content area.
+#file-menu-panel .panel-context .header {
+  font-weight: @sos-font-weight-semibold;
+}
+
+// --------------------------------------------------------------------------
+// Narrow windows
+// --------------------------------------------------------------------------
+
+@media (max-width: @sos-bp-compact) {
+  #box-document-title #id-box-doc-name::after {
+    display: none;
+  }
+}
