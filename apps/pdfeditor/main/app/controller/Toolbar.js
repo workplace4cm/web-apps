@@ -182,7 +182,7 @@ define([
                 //               target: '#slot-btn-inssmartart', isNewFeature: true, maxwidth: 300, closable: false, link: {text: _main.textLearnMore, url: url}},
                 'annotRect' : {name: 'pdfe-help-tip-annot-rect', placement: 'bottom', text: this.helpAnnotRect, header: this.helpAnnotRectHeader,
                               target: '#slot-btn-shape-comment', isNewFeature: true, maxwidth: 300, closable: false, noHighlight: true, link: {text: _main.textLearnMore, url: url}},
-                'redactTab' : {name: 'help-tip-redact-tab', placement: 'bottom-right', offset: {x: Common.UI.isRTL() ? -10 : 10, y: 0}, text: this.helpRedactTab, header: this.helpRedactTabHeader, target: 'li.ribtab #red',
+                'redactTab' : {name: 'help-tip-redact-tab', placement: 'bottom-right', offset: {x: Common.UI.isRTL() ? -10 : 10, y: 0}, text: this.helpRedactTab, header: this.helpRedactTabHeader, target: 'li.ribtab #sos-protect',
                                automove: true, maxwidth: 300, closable: false, isNewFeature: true, link: {text: _main.textLearnMore, url: url}},
                 'createLink': {name:'pdfe-help-tip-create-link', placement: 'bottom-left', text: this.helpCreateLink, header: this.helpCreateLinkHeader, target: '#slot-btn-insertlink', maxwidth: 300,
                                 automove: true, closable: false, isNewFeature: true}
@@ -1605,6 +1605,141 @@ define([
             }
                 }
             }
+
+            me.applyOfficeRibbon(config);
+        },
+
+        // EuroOffice PDF ribbon: File, Home, View, Page, Comment, Edit, Organize, Protect, Help
+        // (+ Forms while editing a PDF).
+        // Edit, Organize and Protect hold the PDF editing tools; until editing is on they offer
+        // the command that turns it on.
+        applyOfficeRibbon: function (config) {
+            var me = this,
+                toolbar = me.toolbar,
+                ribbon = Common.UI.SosRibbon;
+            if (!ribbon || !config.isEdit) return;
+
+            ribbon.removeUnusedTabs(toolbar);
+            // Review only adds Delete and Resolve to the commenting tools; Comment already has Add Comment
+            toolbar.getTab('review') && toolbar.getTab('review').find('.slot-comment').remove();
+            toolbar.mergeTab('review', 'comment') && ribbon.tidyPanel(toolbar.getTab('comment'));
+            toolbar.moveTab('view', toolbar.getTabIdx('home'));
+
+            var canEditPdf = config.isPDFAnnotate && config.canPDFEdit || config.isPDFEdit,
+                editHidden = config.isPDFEdit ? ' hidden' : '',
+                startEditing = function (tab, caption, hint) {
+                    var btn = ribbon.createButton({
+                        iconCls: 'toolbar__icon btn-edit-text',
+                        caption: caption,
+                        hint: hint,
+                        lock: [Common.enumLock.lostConnect, Common.enumLock.disableOnStart]
+                    });
+                    btn.on('click', function () {
+                        Common.NotificationCenter.trigger('pdf:mode-apply', 'edit', tab);
+                    });
+                    toolbar.toolbarControls && toolbar.toolbarControls.push(btn);
+                    return btn;
+                },
+                addTab = function (action, caption, hintTitle, $panel, after) {
+                    toolbar.addTab({action: action, caption: caption, dataHintTitle: hintTitle, extcls: 'canedit', layoutname: 'toolbar-' + action}, $panel, after);
+                    toolbar.setVisible(action, true);
+                };
+
+            // Page: moving through the pages
+            var $pagePanel = ribbon.createPanel('sos-page', []),
+                $nav = toolbar.$el.find('#slot-btn-pages').closest('.group');
+            if ($nav.length) {
+                $nav.next('.separator').remove();
+                $nav.removeClass('annotate hidden').attr({role: 'group', 'aria-label': ribbon.text('textGroupNavigation', 'Navigation')});
+                $pagePanel.append($nav);
+            }
+            addTab('sos-page', ribbon.text('textTabPage', 'Page'), 'P', $pagePanel, toolbar.getTabIdx('view'));
+
+            if (canEditPdf) {
+                // Edit: insert text, images, shapes, tables, ...
+                var $editPanel = ribbon.createPanel('sos-edit', [{cls: 'annotate' + (config.isPDFEdit ? ' hidden' : ''), buttons: [
+                        startEditing('sos-edit', toolbar.textEditMode, ribbon.text('tipStartEdit', 'Turn on editing to change the text and add images, shapes and tables'))]}]);
+                addTab('sos-edit', ribbon.text('textTabEdit', 'Edit'), 'E', $editPanel, toolbar.getTabIdx('comment'));
+
+                // Organize: insert, rotate and delete pages, page thumbnails
+                var btnThumbs = ribbon.createButton({
+                    iconCls: 'toolbar__icon btn-big-page-thumbnails',
+                    caption: ribbon.text('textThumbnails', 'Page Thumbnails'),
+                    hint: ribbon.text('tipThumbnails', 'Show or hide the page thumbnails; drag a thumbnail to move a page')
+                });
+                btnThumbs.on('click', function () {
+                    var leftMenu = me.getApplication().getController('LeftMenu').getView('LeftMenu'),
+                        btn = leftMenu && leftMenu.btnThumbnails;
+                    if (!btn || btn.isDisabled()) return;
+                    btn.toggle(!btn.pressed);
+                    leftMenu.onBtnMenuClick(btn);
+                });
+                btnThumbs.setVisible(!!config.canUseThumbnails);
+                var $orgPanel = ribbon.createPanel('sos-organize', [
+                        {buttons: [btnThumbs]},
+                        {cls: 'annotate' + editHidden, buttons: [startEditing('sos-organize', ribbon.text('textEditPages', 'Edit Pages'), ribbon.text('tipEditPages', 'Turn on editing to insert, rotate and delete pages'))]}
+                    ]),
+                    $pages = toolbar.$el.find('#slot-btn-rotate').closest('.group');
+                if ($pages.length) {
+                    $pages.prev('.separator').remove();
+                    $orgPanel.append($('<div class="separator long pdfedit' + (config.isPDFEdit ? '' : ' hidden') + '"></div>'), $pages);
+                }
+                addTab('sos-organize', ribbon.text('textTabOrganize', 'Organize'), 'O', $orgPanel, toolbar.getTabIdx('sos-edit'));
+            }
+
+            // Protect: password and redaction
+            var protectGroups = [];
+            if (config.isPasswordSupport) {
+                var $pwd = me.getApplication().getController('Common.Controllers.Protection').createToolbarPanel();
+                $pwd && protectGroups.push($pwd.children('.group').first());
+            }
+            var $protectPanel = ribbon.createPanel('sos-protect', canEditPdf ? [{cls: 'annotate' + editHidden,
+                    buttons: [startEditing('sos-protect', ribbon.text('textRedact', 'Redact'), ribbon.text('tipRedact', 'Turn on editing to mark and remove sensitive content'))]}] : []);
+            if (protectGroups.length) {
+                $protectPanel.prepend(protectGroups[0]);
+                $protectPanel.children().length > 1 && protectGroups[0].after('<div class="separator long annotate' + editHidden + '"></div>');
+            }
+            if ($protectPanel.children().length)
+                addTab('sos-protect', ribbon.text('textTabProtect', 'Protect'), 'T', $protectPanel, toolbar.getTabIdx(canEditPdf ? 'sos-organize' : 'comment'));
+
+            me.mergeOfficeEditTabs();
+
+            ribbon.addHelpTab(toolbar, {
+                mode: config,
+                api: me.api,
+                showHelp: function () {
+                    me.getApplication().getController('LeftMenu').getView('LeftMenu').showMenu('file:help');
+                }
+            });
+        },
+
+        // The Insert and Redact tabs of PDF editing become part of Edit and Protect.
+        mergeOfficeEditTabs: function () {
+            var toolbar = this.toolbar;
+            if (!Common.UI.SosRibbon || !toolbar.getTab('sos-edit')) return;
+
+            var merge = function (from, to) {
+                var $from = toolbar.getTab(from);
+                if (!$from) return;
+                var $items = $from.children().not('.more-box').addClass('pdfedit'),
+                    $first = $items.first();
+                toolbar.mergeTab(from, to);
+                // the separator in front of the editing tools: keep it only after commands shown in both modes
+                var $sep = $first.prev('.separator');
+                $sep.prevAll().not('.annotate').length ? $sep.addClass('pdfedit') : $sep.remove();
+            };
+            // pages are inserted from Organize
+            var $insPage = toolbar.getTab('ins') ? toolbar.getTab('ins').find('.slot-inspage').closest('.group') : $();
+            $insPage.next('.separator').remove();
+            $insPage.remove();
+            merge('ins', 'sos-edit');
+            merge('red', 'sos-protect');
+
+            // Forms (PDF form fields) follows the editing tabs
+            if (toolbar.getTab('forms') && !this._state.sosFormsPlaced) {
+                this._state.sosFormsPlaced = true;
+                toolbar.moveTab('forms', toolbar.getTabIdx(toolbar.getTab('sos-protect') ? 'sos-protect' : 'sos-organize'));
+            }
         },
 
         applyMode: function(activeTab) {
@@ -1657,6 +1792,9 @@ define([
 
                 this._state.initEditing = false;
             }
+            this.mergeOfficeEditTabs();
+            if (activeTab && toolbar.isTabRemoved(activeTab))
+                activeTab = {ins: 'sos-edit', red: 'sos-protect'}[activeTab];
             if (activeTab)
                 toolbar.setTab(activeTab);
             else if (this.mode.isPDFEdit ||  toolbar.isTabActive('ins') || toolbar.isTabActive('forms') || toolbar.isTabActive('red'))
@@ -1772,7 +1910,7 @@ define([
                 Common.UI.TooltipManager.closeTip('annotRect');
 
             (tab === 'ins') ? Common.UI.TooltipManager.showTip('createLink') : Common.UI.TooltipManager.closeTip('createLink');
-            (tab === 'red') && Common.UI.TooltipManager.closeTip('redactTab');
+            (tab === 'red' || tab === 'sos-protect') && Common.UI.TooltipManager.closeTip('redactTab');
         },
 
         onTabCollapse: function(tab) {

@@ -164,6 +164,7 @@ require([
             'common/main/lib/controller/Themes',
             'common/main/lib/controller/TabStyler',
             'common/main/lib/controller/Desktop',
+            'common/main/lib/util/SosRibbon',
             'spreadsheeteditor/main/app/controller/Viewport',
             'spreadsheeteditor/main/app/controller/DocumentHolder',
             'spreadsheeteditor/main/app/controller/CellEditor',

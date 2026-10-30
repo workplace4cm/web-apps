@@ -159,6 +159,7 @@ require([
                 'common/main/lib/controller/Themes',
                 'common/main/lib/controller/TabStyler',
                 'common/main/lib/controller/Desktop',
+                'common/main/lib/util/SosRibbon',
                 'documenteditor/main/app/controller/Viewport',
                 'documenteditor/main/app/controller/DocumentHolder',
                 'documenteditor/main/app/controller/Toolbar',

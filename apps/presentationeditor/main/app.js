@@ -163,6 +163,7 @@ require([
             'common/main/lib/controller/Themes',
             'common/main/lib/controller/TabStyler',
             'common/main/lib/controller/Desktop',
+            'common/main/lib/util/SosRibbon',
             'presentationeditor/main/app/controller/Viewport',
             'presentationeditor/main/app/controller/DocumentHolder',
             'presentationeditor/main/app/controller/Toolbar',

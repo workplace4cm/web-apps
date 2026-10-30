@@ -2882,6 +2882,76 @@ define([
                 me.toolbar.setVisible('view', visible);
                 !editmode && !compactview && visible && Common.Utils.InternalSettings.set('toolbar-active-tab', 'view'); // need to activate later
             }
+
+            me.applyOfficeRibbon(config);
+        },
+
+        // EuroOffice Presentation ribbon: File, Home, Insert, Design, Transitions, Animations,
+        // Slide Show, Review, View, Help (+ Slide Master while editing masters).
+        applyOfficeRibbon: function (config) {
+            var me = this,
+                toolbar = me.toolbar,
+                ribbon = Common.UI.SosRibbon;
+            if (!ribbon) return;
+
+            ribbon.removeUnusedTabs(toolbar);
+            toolbar.setTabCaption('animate', ribbon.text('textTabAnimations', 'Animations'));
+            ribbon.buildReviewTab(toolbar);
+
+            // Slide Show: the commands of the Home tab's "Start slideshow" button.
+            var btnFromBegin = ribbon.createButton({
+                    iconCls: 'toolbar__icon btn-big-slideshow-begin',
+                    caption: ribbon.text('textFromBeginning', 'From Beginning'),
+                    hint: ribbon.text('tipFromBeginning', 'Start the slide show from the first slide')
+                }),
+                btnFromCurrent = ribbon.createButton({
+                    iconCls: 'toolbar__icon btn-big-slideshow-current',
+                    caption: ribbon.text('textFromCurrent', 'From Current Slide'),
+                    hint: ribbon.text('tipFromCurrent', 'Start the slide show from the current slide')
+                }),
+                btnPresenter = ribbon.createButton({
+                    iconCls: 'toolbar__icon btn-big-presenter-view',
+                    caption: toolbar.textShowPresenterView || 'Presenter View',
+                    hint: ribbon.text('tipPresenter', 'Show the slides on one screen and your notes and timer on another')
+                }),
+                btnSetup = ribbon.createButton({
+                    iconCls: 'toolbar__icon btn-big-slideshow-setup',
+                    caption: ribbon.text('textSetUp', 'Set Up Slide Show'),
+                    hint: ribbon.text('tipSetUp', 'Choose whether the slide show loops until Esc is pressed')
+                });
+            btnFromBegin.on('click', function () { me.onPreview(0, false, false); });
+            btnFromCurrent.on('click', function () { me.onPreview(me.api.getCurrentPage(), false, true); });
+            btnPresenter.on('click', function () { me.onPreview(0, true, false); });
+            btnSetup.on('click', function () { me.onPreviewItemClick(null, {value: 3}); });
+
+            // Set Up changes the presentation, so it needs editing rights
+            !config.isEdit && (btnSetup = undefined);
+            var groups = [{buttons: [btnFromBegin, btnFromCurrent], label: ribbon.text('textGroupStart', 'Start Slide Show')},
+                          {buttons: _.compact([btnPresenter, btnSetup]), label: ribbon.text('textGroupSetUp', 'Set Up')}];
+
+            var $panel = ribbon.createPanel('sos-slideshow', groups),
+                slideShowButtons = _.compact([btnFromBegin, btnFromCurrent, btnPresenter, btnSetup]);
+            var idx = toolbar.getTabIdx('animate');
+            toolbar.addTab({action: 'sos-slideshow', caption: ribbon.text('textTabSlideShow', 'Slide Show'), dataHintTitle: 'S', layoutname: 'toolbar-sos-slideshow'},
+                            $panel, idx > -1 ? idx : toolbar.getTabIdx('ins'));
+            toolbar.setVisible('sos-slideshow', true);
+
+            // the buttons follow the state of the Home tab's slideshow button (no slides, file menu open, ...)
+            if (toolbar.btnPreview) {
+                var syncState = function (btn, disabled) {
+                    slideShowButtons.forEach(function (btn) { btn.setDisabled(!!disabled); });
+                };
+                toolbar.btnPreview.on('disabled', syncState);
+                syncState(toolbar.btnPreview, toolbar.btnPreview.isDisabled());
+            }
+
+            ribbon.addHelpTab(toolbar, {
+                mode: config,
+                api: me.api,
+                showHelp: function () {
+                    me.getApplication().getController('LeftMenu').getView('LeftMenu').showMenu('file:help');
+                }
+            });
         },
 
         onAppReady: function (config) {

@@ -5100,7 +5100,30 @@ define([
                     !editmode && !compactview && visible && Common.Utils.InternalSettings.set('toolbar-active-tab', 'view'); // need to activate later
                 }
                 config.isEdit && Array.prototype.push.apply(me.toolbar.lockControls, viewtab.getView('ViewTab').getButtons());
+
+                me.applyOfficeRibbon(config);
             }
+        },
+
+        // EuroOffice Sheet ribbon: File, Home, Insert, Page Layout, Formulas, Data, Review, View, Help
+        // (+ Pivot Table and Table Design when the selection is in one).
+        applyOfficeRibbon: function (config) {
+            var me = this,
+                ribbon = Common.UI.SosRibbon;
+            if (!ribbon) return;
+
+            ribbon.removeUnusedTabs(me.toolbar);
+            me.toolbar.setTabCaption('layout', ribbon.text('textTabPageLayout', 'Page Layout'));
+            me.toolbar.setTabCaption('formula', ribbon.text('textTabFormulas', 'Formulas'));
+            ribbon.buildReviewTab(me.toolbar);
+            ribbon.addHelpTab(me.toolbar, {
+                mode: config,
+                api: me.api,
+                showHelp: function () {
+                    me.api && me.api.asc_closeCellEditor();
+                    me.getApplication().getController('LeftMenu').getView('LeftMenu').showMenu('file:help');
+                }
+            });
         },
 
         onAppReady: function (config) {

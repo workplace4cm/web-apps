@@ -155,6 +155,7 @@ require([
                 'common/main/lib/controller/Themes',
                 'common/main/lib/controller/TabStyler',
                 'common/main/lib/controller/Desktop',
+                'common/main/lib/util/SosRibbon',
                 'pdfeditor/main/app/controller/Viewport',
                 'pdfeditor/main/app/controller/DocumentHolder',
                 'pdfeditor/main/app/controller/Toolbar',
