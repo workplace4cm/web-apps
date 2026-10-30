@@ -112,15 +112,16 @@ body[data-editor-type="drawing"] {
 
 // --------------------------------------------------------------------------
 // Per-editor application accent
-// A narrow strip adds editor identity without recoloring the full header or
-// overriding any light, dark, night, or high-contrast theme tokens.
+// A narrow strip adds editor identity to the neutral headers (White, Gray and
+// the dark themes). Light and Classic Light paint the whole title bar in the
+// application colour instead (office-ui.less), so they need no strip.
 // --------------------------------------------------------------------------
 
-:root body[data-editor-type] #viewport {
+:root body[data-editor-type]:not(.theme-light):not(.theme-classic-light) #viewport {
   top: @eo-app-accent-height;
 }
 
-:root body[data-editor-type] #viewport::before {
+:root body[data-editor-type]:not(.theme-light):not(.theme-classic-light) #viewport::before {
   content: "";
   position: fixed;
   top: 0;
