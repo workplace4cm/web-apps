@@ -371,6 +371,8 @@ define([
 
                 var _tabTemplate = _.template('<li class="ribtab" style="display: none;" <% if (typeof layoutname == "string") print(" data-layout-name=" + \' \' +  layoutname) + \' \' %>><a role="tab" id="<%= action %>" data-tab="<%= action %>" data-title="<%= caption %>" data-hint="0" data-hint-direction="bottom" data-hint-offset="small" <% if (typeof dataHintTitle !== "undefined") { %> data-hint-title="<%= dataHintTitle %>" <% } %> ><%= caption %></a></li>');
 
+                if ( this.isTabRemoved(tab.action) ) return;
+
                 if (after===undefined || tab.aux)
                     after = config.tabs.length-1;
 
@@ -604,8 +606,86 @@ define([
                 }
             },
 
+            setTabCaption: function (tab, caption) {
+                if ( !tab || !caption ) return;
+                var item = _.findWhere(config.tabs, {action: tab});
+                item && (item.caption = caption);
+                var $a = (this.$tabs || this.$layout.find('.tabs')).find('a[data-tab=' + tab + ']');
+                $a.text(caption).attr('data-title', caption);
+                this.onResizeTabs && this.$tabs && this.onResizeTabs();
+            },
+
+            // Moves the commands of tab 'from' to the end of tab 'to' and removes tab 'from'.
+            mergeTab: function (from, to) {
+                var $panels = this.$panels || this.$layout.find('.box-panels > .panel'),
+                    $from = $panels.filter('[data-tab=' + from + ']'),
+                    $to = $panels.filter('[data-tab=' + to + ']');
+                if ( !$from.length || !$to.length ) return false;
+
+                var $items = $from.children().not('.more-box');
+                if ( $items.length ) {
+                    var $more = $to.children('.more-box');
+                    var $box = $('<div class="separator long"></div>').add($items);
+                    $more.length ? $more.before($box) : $to.append($box);
+                }
+                this.removeTab(from);
+                this.$panels && this.clearActiveData(to);
+                return true;
+            },
+
+            // Removes a tab and its panel; later requests to show it are ignored.
+            removeTab: function (tab) {
+                if ( !tab ) return;
+                var me = this,
+                    index = _.findIndex(config.tabs, function(item) { return item && item.action === tab; });
+                index > -1 && (config.tabs[index] = undefined);
+
+                (me.$tabs || me.$layout.find('.tabs')).find('a[data-tab=' + tab + ']').parent().remove();
+                (me.$panels || me.$layout.find('.box-panels > .panel')).filter('[data-tab=' + tab + ']').remove();
+                me.removedTabs = me.removedTabs || {};
+                me.removedTabs[tab] = true;
+
+                if ( me.$tabs ) {
+                    me.$tabs = $boxTabs.find('> li');
+                    me.$panels = me.$el.find('.box-panels > .panel');
+                    if ( me.lastPanel === tab ) {
+                        me.lastPanel = undefined;
+                        me.setTab('home');
+                    }
+                    me.onResize();
+                }
+            },
+
+            // Puts an existing tab (with its panel) after the tab with index 'after'.
+            moveTab: function (tab, after) {
+                var index = this.getTabIdx(tab);
+                if ( index < 0 || !this.$tabs ) return;
+                var item = config.tabs[index],
+                    $li = this.$tabs.find('> a[data-tab=' + tab + ']').parent(),
+                    visible = $li.css('display') !== 'none',
+                    active = $li.hasClass('active'),
+                    $panel = this.$panels.filter('[data-tab=' + tab + ']').detach();
+                $li.remove();
+                config.tabs[index] = undefined;
+                this.$tabs = $boxTabs.find('> li');
+                this.$panels = this.$el.find('.box-panels > .panel');
+                this.addTab(item, $panel, after);
+                item.extcls && this.$tabs.find('> a[data-tab=' + tab + ']').parent().addClass(item.extcls);
+                this.setVisible(tab, visible);
+                active && this.setTab(tab);
+            },
+
+            getTabIdx: function (tab) {
+                return _.findIndex(config.tabs, function(item) { return item && item.action === tab; });
+            },
+
+            isTabRemoved: function (tab) {
+                return !!(this.removedTabs && this.removedTabs[tab]);
+            },
+
             setVisible: function (tab, visible) {
                 if ( tab && this.$tabs ) {
+                    if ( visible && this.isTabRemoved(tab) ) return;
                     this.$tabs.find('> a[data-tab=' + tab + ']').parent().css('display', visible ? '' : 'none');
                     this.onResize();
                 }

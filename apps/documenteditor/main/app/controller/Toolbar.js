@@ -4045,6 +4045,26 @@ define([
                 !editmode && !compactview && visible && Common.Utils.InternalSettings.set('toolbar-active-tab', 'view'); // need to activate later
             }
             config.isEdit && Array.prototype.push.apply(me.toolbar.lockControls, viewtab.getView('ViewTab').getButtons());
+
+            me.applyOfficeRibbon(config);
+        },
+
+        // EuroOffice Writer ribbon: File, Home, Insert, Layout, References, Review, View, Help
+        // (+ Header & Footer and Forms when they apply).
+        applyOfficeRibbon: function (config) {
+            var me = this,
+                ribbon = Common.UI.SosRibbon;
+            if (!ribbon) return;
+
+            ribbon.removeUnusedTabs(me.toolbar);
+            ribbon.buildReviewTab(me.toolbar);
+            ribbon.addHelpTab(me.toolbar, {
+                mode: config,
+                api: me.api,
+                showHelp: function () {
+                    me.getApplication().getController('LeftMenu').getView('LeftMenu').showMenu('file:help');
+                }
+            });
         },
 
         onAppReady: function (config) {
