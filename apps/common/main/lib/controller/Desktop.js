@@ -58,6 +58,9 @@ define([
             'btn-save-coauth': 'coauth',
             'btn-synch': 'synch' };
         let recents = [];
+        // Secure Office Suite: the shell's recent-document service keeps one list per application
+        const sosApp = window.PDFE ? 'pdf' : window.SSE ? 'sheet' : window.PE ? 'presentation' : window.DE ? 'writer' : '';
+        let sosRecents = false;
 
         var nativevars,
             helpUrl;
@@ -67,6 +70,18 @@ define([
             nativevars = window.RendererProcessVariable;
 
             window.on_native_message = function (cmd, param) {
+                if (cmd == 'sos:recents') {
+                    if ( sosApp ) {
+                        try {
+                            recents = _parseSosRecents(JSON.parse(param));
+                            sosRecents = true;
+                            Common.NotificationCenter.trigger('update:recents', recents);
+                        } catch (e) {}
+                    }
+                } else
+                if (cmd == 'sos:recents:missing') {
+                    try { _onSosRecentMissing(JSON.parse(param)); } catch (e) {}
+                } else
                 if (/^style:change/.test(cmd)) {
                     var obj = JSON.parse(param);
 
@@ -226,8 +241,11 @@ define([
             }
 
             native.execCommand('webapps:features', JSON.stringify(features));
+            sosApp && native.execCommand('sos:recents:get', '{}');
 
             window.onupdaterecents = function (params) {
+                // the engine's list mixes every application: not used once the shell's lists arrive
+                if ( sosRecents ) return;
                 recents = _parseRecents(params);
                 Common.NotificationCenter.trigger('update:recents', recents);
             }
@@ -555,6 +573,38 @@ define([
             return _files_arr;
         }
 
+        // this application's list from the shell's recent-document service
+        const _parseSosRecents = function (data) {
+            const list = data && data.lists && data.lists[sosApp] || [];
+            return list.map(function (e) {
+                return {
+                    sospath: e.path,
+                    format: e.ext,
+                    title: Common.Utils.String.htmlEncode(e.name),
+                    url: Common.Utils.String.htmlEncode(e.path),
+                    folder: Common.Utils.String.htmlEncode(e.folder),
+                };
+            });
+        }
+
+        // the document was moved, renamed or deleted, or its drive is gone
+        const _onSosRecentMissing = function (info) {
+            const name = info.path.replace(/^.*[\\/]/, '');
+            const msg = info.status == 'unreachable' ? _tr('txtRecentUnreachable', 'The folder of %1 can\u2019t be reached. Connect the drive or network location and try again, or find the file somewhere else.') :
+                        info.status == 'noaccess' ? _tr('txtRecentNoAccess', 'You don\u2019t have permission to open %1.') :
+                                                    _tr('txtRecentMissing', '%1 is no longer where it was. It may have been moved, renamed or deleted.');
+            Common.UI.warning({
+                msg: Common.Utils.String.htmlEncode(msg.replace('%1', name)),
+                buttons: [{value: 'locate', caption: _tr('txtRecentLocate', 'Find file\u2026')},
+                          {value: 'remove', caption: _tr('txtRecentRemove', 'Remove from list')}, 'cancel'],
+                primary: 'locate',
+                callback: function (btn) {
+                    if ( btn == 'locate' || btn == 'remove' )
+                        native.execCommand('sos:recents:' + btn, JSON.stringify({path: info.path}));
+                }
+            });
+        }
+
         const _onOpenRecent = function (menu, url, record) {
             console.log('open recent');
         }
@@ -745,6 +795,11 @@ define([
                 return recents;
             },
             openRecent: function (model) {
+                if ( this.isActive() && model.get('sospath') ) {
+                    native.execCommand('sos:recents:open', JSON.stringify({path: model.get('sospath')}));
+                    return true;
+                }
+
                 if ( this.isActive() ) {
                     const params = {
                         name: Common.Utils.String.htmlDecode(model.get('title')),
