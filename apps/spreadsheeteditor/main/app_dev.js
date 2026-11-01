@@ -155,6 +155,7 @@ require([
             'common/main/lib/controller/TabStyler',
             'common/main/lib/controller/Desktop',
             'common/main/lib/util/SosRibbon',
+            'common/main/lib/util/SosBackstage',
             'spreadsheeteditor/main/app/controller/Viewport',
             'spreadsheeteditor/main/app/controller/DocumentHolder',
             'spreadsheeteditor/main/app/controller/CellEditor',

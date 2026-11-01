@@ -551,6 +551,9 @@ define([
                     }));
             }
 
+            // Secure Office Suite: Office-style Backstage in the desktop app
+            Common.UI.SosBackstage && Common.UI.SosBackstage.apply(this);
+
             this.hideDividers();
         },
 

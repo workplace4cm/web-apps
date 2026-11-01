@@ -1,0 +1,206 @@
+// --------------------------------------------------------------------------
+// Secure Office Suite: Backstage pages added to the File menu
+// (apps/common/main/lib/util/SosBackstage.js): New, Export and About.
+// The rail itself is styled in office-ui.less.
+// --------------------------------------------------------------------------
+
+#file-menu-panel .panel-context .sos-bs-page {
+  height: 100%;
+  overflow-y: auto;
+  padding: 30px 32px 32px 30px;
+  color: @text-normal;
+  font-size: @sos-font-size-body;
+
+  .rtl & {
+    padding: 30px 30px 32px 32px;
+  }
+
+  > .header {
+    font-size: @sos-font-size-title;
+    margin-bottom: 24px;
+    white-space: nowrap;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: start;
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--sos-app-accent);
+    outline-offset: 2px;
+  }
+
+  .sos-bs-intro,
+  .sos-bs-note {
+    margin: 0 0 20px;
+    color: @text-secondary;
+  }
+}
+
+// New: blank document and templates
+#panel-sos-new {
+  .sos-bs-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 16px;
+  }
+
+  .sos-bs-card {
+    display: flex;
+    flex-direction: column;
+    width: 152px;
+    border-radius: @sos-radius-small;
+
+    &:hover .sos-bs-thumb {
+      border-color: var(--sos-app-accent);
+      box-shadow: 0 0 0 1px var(--sos-app-accent);
+    }
+  }
+
+  .sos-bs-thumb {
+    display: block;
+    width: 152px;
+    height: 132px;
+    margin-bottom: 8px;
+    border: 1px solid @border-regular-control;
+    border-radius: @sos-radius-small;
+    background-color: #fff;
+    overflow: hidden;
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+
+    &.sos-bs-blank {
+      background-image: linear-gradient(var(--sos-app-accent), var(--sos-app-accent));
+      background-size: 100% 6px;
+      background-repeat: no-repeat;
+    }
+  }
+
+  .sos-bs-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sos-bs-category {
+    display: block;
+    color: @text-secondary;
+    font-size: @sos-font-size-caption;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sos-bs-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin-top: 28px;
+  }
+
+  .sos-bs-link {
+    color: var(--sos-app-accent);
+    text-decoration: underline;
+
+    .theme-type-dark & {
+      color: var(--sos-app-accent-night);
+    }
+  }
+}
+
+// Export: one row per format
+#panel-sos-export {
+  .sos-bs-formats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 560px;
+  }
+
+  .sos-bs-format {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 12px;
+    border-radius: @sos-radius-small;
+
+    &:hover {
+      background-color: @highlight-button-hover;
+    }
+  }
+
+  .sos-bs-ext {
+    flex: none;
+    width: 48px;
+    padding: 6px 0;
+    border-radius: @sos-radius-small;
+    background-color: var(--sos-app-accent);
+    color: var(--sos-app-on-accent);
+    font-size: @sos-font-size-caption;
+    font-weight: @sos-font-weight-semibold;
+    text-align: center;
+  }
+
+  .sos-bs-format-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .sos-bs-name {
+    font-weight: @sos-font-weight-semibold;
+  }
+
+  .sos-bs-desc {
+    color: @text-secondary;
+  }
+}
+
+// About: the shell's About text
+#panel-sos-about {
+  .sos-bs-about p {
+    margin: 0 0 6px;
+  }
+
+  .sos-bs-about-logo {
+    width: 220px;
+    height: 48px;
+    margin-bottom: 20px;
+    background: ~"url('@{common-image-const-path}/about/logo.svg')" no-repeat left center;
+    background-size: contain;
+
+    .rtl & {
+      background-position: right center;
+    }
+  }
+
+  .sos-bs-about-product {
+    font-size: @sos-font-size-title;
+    font-weight: @sos-font-weight-semibold;
+  }
+
+  .sos-bs-about-app {
+    font-size: @sos-font-size-subtitle;
+  }
+
+  .sos-bs-about-version {
+    margin-top: 12px !important;
+  }
+
+  .sos-bs-about-rights {
+    color: @text-secondary;
+  }
+}

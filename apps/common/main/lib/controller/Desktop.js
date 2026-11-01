@@ -82,6 +82,10 @@ define([
                 if (cmd == 'sos:recents:missing') {
                     try { _onSosRecentMissing(JSON.parse(param)); } catch (e) {}
                 } else
+                if (/^sos:backstage:/.test(cmd)) {
+                    // File menu (Backstage): templates for New, the About text
+                    Common.NotificationCenter.trigger('sos:backstage', cmd.substring(14), param);
+                } else
                 if (/^style:change/.test(cmd)) {
                     var obj = JSON.parse(param);
 
@@ -615,6 +619,10 @@ define([
 
         const _extend_menu_file = function (args) {
             console.log('extend menu file')
+
+            // Secure Office Suite: File > New lists the templates itself
+            if ( Common.UI.SosBackstage && Common.UI.SosBackstage.isActive() )
+                return;
 
             // if ( native.features.opentemplate )
             {

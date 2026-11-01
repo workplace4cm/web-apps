@@ -156,6 +156,7 @@ require([
                 'common/main/lib/controller/TabStyler',
                 'common/main/lib/controller/Desktop',
                 'common/main/lib/util/SosRibbon',
+                'common/main/lib/util/SosBackstage',
                 'pdfeditor/main/app/controller/Viewport',
                 'pdfeditor/main/app/controller/DocumentHolder',
                 'pdfeditor/main/app/controller/Toolbar',
